@@ -1,0 +1,58 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>App map</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<header class="top">
+  <div class="brand">
+    <span class="logo" aria-hidden="true"></span>
+    <div>
+      <strong>App map</strong>
+      <span class="run" id="run-name"></span>
+    </div>
+  </div>
+  <div class="ecr" tabindex="0" aria-describedby="ecr-tip">
+    <span class="ecr-step on">Explore</span><span class="arrow">→</span>
+    <span class="ecr-step">Compile</span><span class="arrow">→</span>
+    <span class="ecr-step">Replay</span>
+    <div class="tip" id="ecr-tip" role="tooltip">
+      Agents <b>explored</b> the app: the map maker opened every screen once, the personas tried to reach their goals.
+      Each path is a trace that names what was tapped, not where. <code>ecr compile</code> turns it into a Maestro flow that <b>replays</b> on every build with no model.
+    </div>
+  </div>
+  <a class="demo-note" id="demo-note" hidden href="https://github.com/pierridotite/mobile-agent-testers" target="_blank" rel="noopener">Demo with a made-up app · run it on yours</a>
+  <div class="actions">
+    <button id="undo" class="icon" title="Undo (Ctrl+Z)" aria-label="Undo">↶</button>
+    <button id="redo" class="icon" title="Redo (Ctrl+Shift+Z)" aria-label="Redo">↷</button>
+    <span class="status" id="status" aria-live="polite"></span>
+    <button id="save" class="primary" title="Save the checks to trace.json and the comments to trace.notes.json (Ctrl+S)">Save</button>
+  </div>
+</header>
+
+<section class="map" id="map">
+  <div class="map-canvas" id="map-canvas">
+    <div class="map-world" id="map-world"></div>
+    <div class="map-tools">
+      <div class="seg" role="radiogroup" aria-label="Heat map">
+        <span>Heat map</span>
+        <button data-mapheat="taps" role="radio" title="Real taps of every tester">Taps</button>
+        <button data-mapheat="estimated" role="radio" title="Estimated from the tappable elements, or a saliency model">Estimated</button>
+        <button data-mapheat="both" role="radio" title="Real taps, completed by the estimate where testers tapped little">Both</button>
+      </div>
+      <label class="select">Path <select id="map-path" aria-label="Show one tester's path"></select></label>
+      <label class="select">Device <select id="map-device" aria-label="Show the screens and taps of one device"></select></label>
+      <button id="map-fit" title="Fit the map to the window">Fit</button>
+    </div>
+    <div class="map-legend"><span id="map-testers"></span><b id="map-summary"></b> · One colored lane per tester on each arrow. Dashed: only the map maker. Click a screen to comment it or add a check. Drag to move, scroll to zoom.</div>
+  </div>
+  <aside class="panel map-side" id="map-side"></aside>
+</section>
+
+<div class="empty-state" id="loading">Loading the run…</div>
+<script src="app.js"></script>
+</body>
+</html>

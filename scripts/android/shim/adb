@@ -1,0 +1,27 @@
+#!/usr/bin/env bash
+# Stands in front of adb while an agent explores. It notes each input command
+# (tap, swipe, key, text) in $ECR_ACTION_LOG, then runs the real adb unchanged.
+# The agent's tools and brief stay the same: scripts/ecr_trace.py reads the notes later.
+# Noting must never break a command: any failure to write is ignored.
+if [ -n "${ECR_ACTION_LOG:-}" ] && [ -z "${ECR_SHIM_QUIET:-}" ] && [ "${1:-}" = shell ]; then
+  case "${2:-}" in input*)
+    # An agent often taps several times after one look. The screen tree is then saved
+    # again just before the tap, so the tap is named after what is under the finger
+    # now, not after what was there at the last screenshot.
+    case " $* " in *" tap "*|*" swipe "*)
+      if [ "$(tail -n 1 "$ECR_ACTION_LOG" 2>/dev/null | cut -f2)" != screen ]; then
+        tree="${ECR_ACTION_LOG%/*}/tree-$(wc -l < "$ECR_ACTION_LOG" 2>/dev/null | tr -d ' ').xml"
+        limit=""; command -v timeout >/dev/null 2>&1 && limit="timeout 10"
+        $limit "$ECR_REAL_ADB" shell "rm -f /sdcard/ecr-tree.xml; uiautomator dump /sdcard/ecr-tree.xml" >/dev/null 2>&1
+        $limit "$ECR_REAL_ADB" exec-out cat /sdcard/ecr-tree.xml > "$tree" 2>/dev/null
+        if head -c 5 "$tree" 2>/dev/null | grep -q '<?xml'; then
+          printf '%s\ttree\t%s\n' "$(date +%s)" "$tree" >> "$ECR_ACTION_LOG" 2>/dev/null || true
+        else
+          rm -f "$tree" 2>/dev/null
+        fi
+      fi ;;
+    esac
+    { printf '%s\tadb' "$(date +%s)"; printf '\t%s' "$@"; printf '\n'; } >> "$ECR_ACTION_LOG" 2>/dev/null || true ;;
+  esac
+fi
+exec "${ECR_REAL_ADB:?ECR_REAL_ADB must point to the real adb}" "$@"
